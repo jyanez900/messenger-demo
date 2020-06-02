@@ -1,0 +1,14 @@
+spring:
+  profiles:
+    active: unit-test
+
+management:
+  metrics:
+    export:
+      graphite:
+        enabled: false
+
+eureka:
+  client:
+    enabled: false
+    registerWithEureka: false

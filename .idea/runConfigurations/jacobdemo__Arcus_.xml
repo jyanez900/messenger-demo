@@ -1,0 +1,28 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="JacobdemoApplication (Arcus)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="jacobdemo_main" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="coop.nisc.jacobdemo.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <option name="SPRING_BOOT_MAIN_CLASS" value="coop.nisc.jacobdemo.JacobdemoApplication" />
+    <option name="ENABLE_JMX_AGENT" value="false" />
+    <option name="VM_PARAMETERS" value="-Dlogging.level.coop.nisc.jacobdemo=DEBUG -Dsettings.datacenter=${USER}" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <option name="SHORTEN_COMMAND_LINE" value="CLASSPATH_FILE" />
+    <envs>
+      <env name="SERVER_PORT" value="8081" />
+      <env name="CONFIG_SERVICE_URL" value="https://configserver.k8s.dev.nisc.cloud" />
+      <env name="CONFIG_PROFILE" value="dev" />
+      <env name="EUREKA_CLIENT_REGISTER" value="false" />
+      <env name="METRICS_GRAPHITE_EXPORT_ENABLED" value="false" />
+      <env name="METRICS_GRAPHITE_EXPORT_HOST" value="stats.dev.nisc.cloud" />
+    </envs>
+    <method v="2">
+      <option name="Make" enabled="true" />
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks="ideaCopyBuildInfo" externalProjectPath="$PROJECT_DIR$/jacobdemo" vmOptions="" scriptParameters="" />
+    </method>
+  </configuration>
+</component>

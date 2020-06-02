@@ -1,0 +1,172 @@
+buildscript {
+    ext {
+        springBootVersion = '2.1.2.RELEASE'
+    }
+    repositories {
+        maven {
+            url "${remoteRepositoryUrl}/libs-release"
+            credentials {
+                username = "${artifactoryUser}"
+                password = "${artifactoryPassword}"
+            }
+        }
+    }
+    dependencies {
+        classpath 'coop.nisc:helmsman:1.4.0'
+        classpath "com.bmuschko:gradle-docker-plugin:4.10.0"
+        classpath 'io.spring.gradle:propdeps-plugin:0.0.10.RELEASE'
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+    }
+}
+
+ext {
+    springCloudVersion = 'Greenwich.M1'
+}
+
+apply plugin: 'coop.nisc.helmsman'
+apply plugin: 'application'
+apply plugin: 'java'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'project-report'
+apply plugin: 'propdeps'
+apply plugin: 'propdeps-idea'
+apply plugin: 'com.bmuschko.docker-spring-boot-application'
+apply plugin: 'io.spring.dependency-management'
+
+mainClassName = 'coop.nisc.jacobdemo.JacobdemoApplication'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+// NOTE: by convention, we want our artifacts to match the application name (see application.yml)
+jar {
+    archiveFileName = "portal-jacobdemo-application.${jar.archiveExtension.get()}"
+    enabled = true
+}
+
+bootJar {
+    archiveFileName = "portal-jacobdemo.${archiveExtension.get()}"
+    archiveClassifier = 'boot'
+}
+
+distTar {
+    archiveFileName = "portal-jacobdemo.${archiveExtension.get()}"
+}
+distZip {
+    archiveFileName = "portal-jacobdemo.${archiveExtension.get()}"
+}
+
+configurations.all {
+    exclude group: "commons-logging", module: "commons-logging"
+    exclude group: 'log4j'
+    exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+}
+
+dependencies {
+    // For sanity, it is recommended to keep each dependency grouping in alphabetical order
+    implementation("coop.nisc.boulder:gravel-spring:0.7")
+    implementation("coop.nisc.boulder:nisc-logging-spring2-logback:0.8")
+    implementation("coop.nisc.boulder:nisc-metrics-spring2-prometheus:0.3")
+    implementation(group: "coop.nisc", name: "messenger-api", version: "99.9.999", configuration:"common")
+    implementation("io.github.openfeign:feign-core:9.7.0")
+    implementation("io.github.openfeign:feign-gson:9.7.0")
+    implementation('org.springframework.cloud:spring-cloud-starter-openfeign')
+
+    annotationProcessor platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+    implementation platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}")
+
+    implementation("org.webjars:bootstrap:3.3.7")
+
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.cloud:spring-cloud-starter-config")
+    implementation("org.springframework.cloud:spring-cloud-starter-netflix-eureka-client")
+    implementation("org.springframework.cloud:spring-cloud-starter-zipkin")
+
+
+    runtimeOnly("org.glassfish.jaxb:jaxb-runtime")
+
+
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.3.2")
+    testRuntime("org.junit.jupiter:junit-jupiter-engine:5.3.2")
+    testRuntime("org.junit.vintage:junit-vintage-engine:5.3.2")
+
+    testImplementation("io.cucumber:cucumber-java8:4.7.4")
+    testImplementation("io.cucumber:cucumber-junit:4.7.4")
+
+
+
+}
+
+compileJava.dependsOn(processResources)
+
+test {
+    include 'coop/nisc/**/*Test.class'
+    // If you have an API, you should provide Consumer Driver Contracts
+    // See https://confluence.nisc.coop/display/BEDROCK/Implement+Contract+Testing
+    include 'org/springframework/cloud/contract/**/*Test.class'
+    testLogging {
+        exceptionFormat = 'full'
+    }
+}
+
+springBoot {
+    buildInfo {
+        properties {
+            additional = [
+                    'git.branch'  : "${gitBranch}",
+                    'git.revision': "${gitRevision}"
+            ]
+        }
+    }
+}
+
+docker {
+    springBootApplication {
+        baseImage = 'harbor.arcus.coop/base/springboot-base:jdk8'
+
+        tag = "harbor.arcus.coop/portal/${project.name}:${project.version}"
+        ports = [8080, 9080, 5280, 9280] //server port, management port, remote debug port, jmx port
+    }
+
+    if (!project.hasProperty("harborUsername")) {
+        ext.harborUsername = 'anonymous'
+    }
+    if (!project.hasProperty("harborPassword")) {
+        ext.harborPassword = ''
+    }
+
+    registryCredentials {
+        url = 'https://harbor.arcus.coop/'
+        username = "${harborUsername}"
+        password = "${harborPassword}"
+    }
+}
+
+helm {
+    // Refer to https://stash.nisc.coop/projects/BLDTOOL/repos/helmsman/browse/README.md
+    // for plugin usage information.
+    description = 'Demo project built by Bedrock'
+    env = [
+        'SERVER_PORT' : '8080'
+    ]
+    port = 8080
+    managementPort = 9080
+}
+
+/**
+ * Hacky-task to copy the dependent resource 'build-info.properties' into
+ * the appropriate directory for inclusion in IntelliJ classpath.
+ */
+task ideaCopyBuildInfo(type: Copy) {
+    group 'IDE'
+    description 'Copies the "build-info.properties" for running application within IntelliJ'
+
+    from('build/resources/main/META-INF/build-info.properties')
+    into('out/production/resources/META-INF/')
+}

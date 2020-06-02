@@ -1,0 +1,90 @@
+buildscript {
+    repositories {
+        maven {
+            url 'https://artifactory.nisc.coop/artifactory/libs-release'
+            credentials {
+                username = "${artifactoryUser}"
+                password = "${artifactoryPassword}"
+            }
+        }
+    }
+    dependencies {
+        classpath "coop.nisc:git-version:1.2.0"
+    }
+}
+
+defaultTasks 'clean', 'build'
+
+apply plugin: 'coop.nisc.gitversion'
+
+if (!project.hasProperty("artifactoryUrl")) {
+    ext.artifactoryUrl = 'https://artifactory.nisc.coop/artifactory'
+}
+
+ext {
+    gitBranch = rootProject.gitVersion.branch
+    gitRevision = rootProject.gitVersion.revision
+
+    buildFilesDir = file("${rootProject.rootDir}/buildfiles")
+    localIvyBuildCache = file("${buildFilesDir}/nisc-repo")
+    userIvyCache = file("${System.properties['user.home']}/.ivy2/cache")
+    remoteRepositoryUrl = artifactoryUrl
+
+    applicationNamespace = "portal"
+}
+
+subprojects {
+
+    apply plugin: 'ivy-publish'
+    apply plugin: 'java'
+
+    group = 'coop.nisc'
+    version = rootProject.gitVersion.buildVersion
+
+    repositories {
+        ivy {
+            ivyPattern "${remoteRepositoryUrl}/ivy-nisc-repo/[organisation]/[module]/[revision]/[type]s/[artifact].[ext]"
+            artifactPattern "${remoteRepositoryUrl}/ivy-nisc-repo/[organisation]/[module]/[revision]/[type]s/[artifact].[ext]"
+            credentials {
+                username = "${artifactoryUser}"
+                password = "${artifactoryPassword}"
+            }
+        }
+        ivy {
+            ivyPattern "${remoteRepositoryUrl}/ivy-nisc-thirdparty-repo/[organisation]/[module]/[revision]/[type]s/[artifact].[ext]"
+            artifactPattern "${remoteRepositoryUrl}/ivy-nisc-thirdparty-repo/[organisation]/[module]/[revision]/[type]s/[artifact].[ext]"
+            credentials {
+                username = "${artifactoryUser}"
+                password = "${artifactoryPassword}"
+            }
+        }
+        maven {
+            url "${remoteRepositoryUrl}/libs-release"
+            credentials {
+                username = "${artifactoryUser}"
+                password = "${artifactoryPassword}"
+            }
+        }
+    }
+
+    publishing {
+        repositories {
+            ivy {
+                ivyPattern "${userIvyCache}/[organisation]/[module]/[revision]/[type]s/[artifact].[ext]"
+                artifactPattern "${userIvyCache}/[organisation]/[module]/[revision]/[type]s/[artifact].[ext]"
+            }
+            ivy {
+                ivyPattern "${localIvyBuildCache}/[organisation]/[module]/[revision]/[type]s/[artifact].[ext]"
+                artifactPattern "${localIvyBuildCache}/[organisation]/[module]/[revision]/[type]s/[artifact].[ext]"
+            }
+        }
+    }
+
+}
+
+task cleanIvyBuildCache(type: Delete) {
+    group 'Build'
+    description 'Deletes all build artifacts from the local Ivy build cache'
+
+    delete "${localIvyBuildCache}"
+}

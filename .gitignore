@@ -1,0 +1,66 @@
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+
+### NetBeans ###
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+out/
+classes/
+
+# Idea Files
+.idea/*
+!.idea/runConfigurations/
+!.idea/vcs.xml
+!.idea/gradle.xml
+*.iws
+*.iml
+*.ipr
+
+# Ignore particular build resources
+buildfiles/build-macros.xml
+buildfiles/default.properties
+buildfiles/ivysettings.xml
+buildfiles/ivysettings-usepublic.xml
+build.properties.template
+buildfiles/nisc-repo/
+buildfiles/sonar/
+buildfiles/srf/
+buildfiles/*.cache
+buildfiles/*.jar
+
+# Ignore common build-generated meta files
+*/versions.properties
+*/src/*/build.properties
+*/src/*/nisc.build.properties
+*/resources/*/build.properties
+**/gwt-unitCache/
+**/ivygen_*.xml
+**/.sonar
+
+# Ignore transient build artifacts
+.gradle
+*/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Ignore temp files...I like VI, don't you?!
+*~
+*.swp
+
+# Ignore OS X generated files
+.DS_Store
+
+# Like to make copies of the original before modifying?  Name it with .OLD or .BACKUP extension
+**/*.OLD
+**/*.BACKUP
+
+**/target/*

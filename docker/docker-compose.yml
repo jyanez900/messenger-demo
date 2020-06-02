@@ -1,0 +1,11 @@
+version: '3'
+services:
+
+  app:
+    image: harbor.arcus.coop/portal/jacobdemo:unknown
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVER_PORT=8080
+      - CONFIG_PROFILE=local
+      - EUREKA_CLIENT_REGISTER=false
